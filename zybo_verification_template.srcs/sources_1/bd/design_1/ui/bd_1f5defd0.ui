@@ -1,0 +1,38 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.0",
+   "Default View_TopLeft":"-558,-242",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0
+#  -string -flagsOSRD
+preplace port DDR -pg 1 -lvl 3 -x 710 -y 180 -defaultsOSRD
+preplace port FIXED_IO -pg 1 -lvl 3 -x 710 -y 200 -defaultsOSRD
+preplace port port-id_btn0 -pg 1 -lvl 0 -x 0 -y 90 -defaultsOSRD
+preplace port port-id_led0 -pg 1 -lvl 3 -x 710 -y 80 -defaultsOSRD
+preplace port port-id_je2 -pg 1 -lvl 3 -x 710 -y 60 -defaultsOSRD
+preplace port port-id_btn1 -pg 1 -lvl 0 -x 0 -y 110 -defaultsOSRD
+preplace port port-id_led2 -pg 1 -lvl 3 -x 710 -y 100 -defaultsOSRD
+preplace port port-id_led3 -pg 1 -lvl 3 -x 710 -y 120 -defaultsOSRD
+preplace portBus led1 -pg 1 -lvl 3 -x 710 -y 280 -defaultsOSRD
+preplace portBus je5 -pg 1 -lvl 3 -x 710 -y 220 -defaultsOSRD
+preplace inst BRAMTransmitter_0 -pg 1 -lvl 2 -x 520 -y 90 -defaultsOSRD
+preplace inst xlconstant_1 -pg 1 -lvl 2 -x 520 -y 280 -defaultsOSRD
+preplace inst processing_system7_0 -pg 1 -lvl 1 -x 180 -y 250 -defaultsOSRD
+preplace netloc BRAMTransmitter_0_finishedGeneration 1 2 1 NJ 120
+preplace netloc BRAMTransmitter_0_finishedTx 1 2 1 NJ 100
+preplace netloc BRAMTransmitter_0_transmitting 1 2 1 NJ 80
+preplace netloc BRAMTransmitter_0_tx 1 2 1 NJ 60
+preplace netloc btn0_1 1 0 2 NJ 90 NJ
+preplace netloc btn1_1 1 0 2 NJ 110 NJ
+preplace netloc processing_system7_0_FCLK_CLK1 1 1 1 N 320
+preplace netloc util_ds_buf_0_BUFG_O 1 1 2 350 220 NJ
+preplace netloc xlconstant_1_dout 1 2 1 NJ 280
+preplace netloc processing_system7_0_DDR 1 1 2 NJ 180 NJ
+preplace netloc processing_system7_0_FIXED_IO 1 1 2 NJ 200 NJ
+levelinfo -pg 1 0 180 520 710
+pagesize -pg 1 -db -bbox -sgen -80 0 830 460
+"
+}
+{
+   "da_ps7_cnt":"1"
+}
