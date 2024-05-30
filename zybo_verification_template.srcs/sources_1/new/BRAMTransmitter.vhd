@@ -1,46 +1,17 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 24.04.2024 21:54:52
--- Design Name: 
--- Module Name: BRAMTransmitter - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
-use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
 
 entity BRAMTransmitter is
-port(
-    clk: in std_logic;
-    startTransmission: in std_logic;
-    reset: in std_logic;
-    tx: out std_logic;
-    rdy: out std_logic;
-    finishedTx: out std_logic;
-    finishedGeneration: out std_logic
-);
+    port(
+        clk: in std_logic;
+        startTransmission: in std_logic;
+        reset: in std_logic;
+        tx: out std_logic;
+        rdy: out std_logic;
+        finishedTx: out std_logic;
+        finishedGeneration: out std_logic
+    );
 end BRAMTransmitter;
 
 architecture Behavioral of BRAMTransmitter is
@@ -49,21 +20,15 @@ architecture Behavioral of BRAMTransmitter is
     signal ready: std_logic;
     signal data: std_logic_vector(31 downto 0);
     signal finished: std_logic;
-    
     signal word: std_logic_vector(0 to 7);
     signal txBusy: std_logic;
     signal txReady: std_logic;
-    
     signal baudPulse: std_logic;
-    
-    attribute MARK_DEBUG: string;
     signal currentData: std_logic_vector(31 downto 0);
-    attribute MARK_DEBUG of currentData: signal is "TRUE";
     signal currentAddress: unsigned(31 downto 0) := x"00000000";
     signal currentByte: integer range -1 to 3 := 3;
     type BRAMTransmitter_CurrentState_t is (Initial, WaitForFinish, StartReadAddress, ReadAddress, WaitForButton, WaitForFree, WaitForBusy, FinishedTransmission);
     signal currentState: BRAMTransmitter_CurrentState_t := Initial;
-
     component BRAMInterface is
         port(
             clk: in std_logic;
@@ -73,8 +38,7 @@ architecture Behavioral of BRAMTransmitter is
             data: out std_logic_vector(31 downto 0);
             finished: out std_logic
         );
-    end component BRAMInterface;
-    
+    end component;
     component UARTTransmitter is
         port(
             clk: in std_logic;
@@ -84,21 +48,17 @@ architecture Behavioral of BRAMTransmitter is
             tx: out std_logic;
             busy: out std_logic
         );
-    end component UARTTransmitter;
-    
-    component Baud9600 is
-    port(
-        clk: in std_logic;
-        pulse: out std_logic
-    );
-    end component Baud9600;
-
+    end component;
+    component BaudGenerator is
+        port(
+            clk: in std_logic;
+            pulse: out std_logic
+        );
+    end component;
 begin
-
     address <= std_logic_vector(currentAddress);
     finishedGeneration <= finished;
-    
-    bram_inst: BRAMInterface port map(
+    bram_inst: component BRAMInterface port map (
         clk => clk,
         address => address,
         read => read,
@@ -106,8 +66,7 @@ begin
         data => data,
         finished => finished
     );
-    
-    uart_inst: UARTTransmitter port map(
+    uart_inst: component UARTTransmitter port map (
         clk => clk,
         baudPulse => baudPulse,
         word => word,
@@ -115,113 +74,107 @@ begin
         tx => tx,
         busy => txBusy
     );
-    
-    baud_inst: Baud9600 port map(
+    baud_inst: component BaudGenerator port map (
         clk => clk,
         pulse => baudPulse
     );
-
-process(clk)
-begin
-if rising_edge(clk) then
-    if reset = '1' then
-        currentState <= Initial;
-        rdy <= '0';
-        finishedTx <= '0';
-    else
-        if currentState = Initial then
-            currentData <= (others => '0');
-            currentAddress <= (others => '0');
-            currentByte <= 3;
-            read <= '0';
-            ready <= '0';
-            word <= (others => '0');
-            currentState <= WaitForFinish;
-            finishedTx <= '0';
-            rdy <= '0';
-        elsif currentState = WaitForFinish then
-            currentData <= (others => '0');
-            currentAddress <= (others => '0');
-            currentByte <= 3;
-            word <= (others => '0');
-            finishedTx <= '0';
-            if finished = '1' then
-                currentState <= StartReadAddress;
+    process(clk)
+    begin
+        if (rising_edge(clk)) then
+            if (reset = '1') then
+                currentState <= Initial;
+                rdy <= '0';
+                finishedTx <= '0';
+            elsif (currentState = Initial) then
+                currentData <= (others => '0');
                 currentAddress <= (others => '0');
-                read <= '1';
-                ready <= '1';
-                rdy <= '1';
-            else
+                currentByte <= 3;
                 read <= '0';
                 ready <= '0';
+                word <= (others => '0');
+                currentState <= WaitForFinish;
+                finishedTx <= '0';
                 rdy <= '0';
-            end if;
-        elsif finished = '1' then
-            rdy <= '1';
-            case currentState is
-                when StartReadAddress =>
+            elsif (currentState = WaitForFinish) then
+                currentData <= (others => '0');
+                currentAddress <= (others => '0');
+                currentByte <= 3;
+                word <= (others => '0');
+                finishedTx <= '0';
+                if (finished = '1') then
+                    currentState <= StartReadAddress;
                     read <= '1';
                     ready <= '1';
-                    currentState <= ReadAddress;
-                    finishedTx <= '0';
-                when ReadAddress =>
-                    currentData <= data;
+                    rdy <= '1';
+                else
                     read <= '0';
                     ready <= '0';
-                    finishedTx <= '0';
-                    if data(0) = '1' then
-                        currentState <= WaitForButton;
-                    else
-                        currentState <= FinishedTransmission;
-                    end if;
-                when WaitForButton =>
-                    read <= '0';
-                    ready <= '0';
-                    finishedTx <= '0';
-                    if startTransmission = '1' then
-                        currentState <= WaitForFree;
-                    end if;
-                when WaitForFree =>
-                    if currentByte = -1 then
+                    rdy <= '0';
+                end if;
+            elsif (finished = '1') then
+                rdy <= '1';
+                case currentState is
+                    when StartReadAddress =>
                         read <= '1';
                         ready <= '1';
-                        currentState <= StartReadAddress;
-                        currentAddress <= currentAddress + 1;
-                        currentByte <= 3;
-                    else
+                        currentState <= ReadAddress;
+                        finishedTx <= '0';
+                    when ReadAddress =>
+                        currentData <= data;
                         read <= '0';
                         ready <= '0';
-                        if txBusy = '0' then
-                            word <= currentData(currentByte * 8 + 7 downto currentByte * 8);
-                            txReady <= '1';
-                            currentState <= WaitForBusy;
+                        finishedTx <= '0';
+                        if (data(0) = '1') then
+                            currentState <= WaitForButton;
+                        else
+                            currentState <= FinishedTransmission;
                         end if;
-                    end if;
-                    finishedTx <= '0';
-                when WaitForBusy =>
-                    read <= '0';
-                    ready <= '0';
-                    word <= currentData(currentByte * 8 + 7 downto currentByte * 8);
-                    finishedTx <= '0';
-                    if txBusy = '1' then
+                    when WaitForButton =>
+                        read <= '0';
+                        ready <= '0';
+                        finishedTx <= '0';
+                        if (startTransmission = '1') then
+                            currentState <= WaitForFree;
+                        end if;
+                    when WaitForFree =>
+                        if (currentByte = -1) then
+                            read <= '1';
+                            ready <= '1';
+                            currentState <= StartReadAddress;
+                            currentAddress <= currentAddress + 1;
+                            currentByte <= 3;
+                        else
+                            read <= '0';
+                            ready <= '0';
+                            if (txBusy = '0') then
+                                word <= currentData(currentByte * 8 + 7 downto currentByte * 8);
+                                txReady <= '1';
+                                currentState <= WaitForBusy;
+                            end if;
+                        end if;
+                        finishedTx <= '0';
+                    when WaitForBusy =>
+                        read <= '0';
+                        ready <= '0';
+                        word <= currentData(currentByte * 8 + 7 downto currentByte * 8);
+                        finishedTx <= '0';
+                        if (txBusy = '1') then
+                            txReady <= '0';
+                            currentState <= WaitForFree;
+                            currentByte <= currentByte - 1;
+                        else
+                            txReady <= '1';
+                        end if;
+                    when FinishedTransmission =>
                         txReady <= '0';
-                        currentState <= WaitForFree;
-                        currentByte <= currentByte - 1;
-                    else
-                        txReady <= '1';
-                    end if;
-                when FinishedTransmission =>
-                    txReady <= '0';
-                    finishedTx <= '1';
-                when others =>
-                    currentState <= Initial;
-            end case;
-        else
-            rdy <= '0';
-            finishedTx <= '0';
+                        finishedTx <= '1';
+                    when others =>
+                        currentState <= Initial;
+                end case;
+            else
+                rdy <= '0';
+                finishedTx <= '0';
+            end if;
         end if;
-    end if;
-end if;
-end process;
-
+    end process;
 end Behavioral;

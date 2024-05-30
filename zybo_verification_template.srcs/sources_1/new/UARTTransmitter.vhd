@@ -15,8 +15,15 @@ end UARTTransmitter;
 architecture Behavioral of UARTTransmitter is
     signal data: std_logic_vector(0 to 7) := x"00";
     signal bitCount: integer range 0 to 7 := 7;
-    type UARTTransmitter_CurrentState_t is (Initial, WaitForReady, WaitForStopLow, WaitForStopPulse, WaitForDataLow, WaitForDataHigh, SentDataBit, WaitForBitPulse);
-    signal currentState: UARTTransmitter_CurrentState_t := Initial;
+    signal currentState: std_logic_vector(3 downto 0) := x"0";
+    constant Initial: std_logic_vector(3 downto 0) := x"0";
+    constant WaitForReady: std_logic_vector(3 downto 0) := x"1";
+    constant WaitForStopLow: std_logic_vector(3 downto 0) := x"2";
+    constant WaitForStopPulse: std_logic_vector(3 downto 0) := x"3";
+    constant WaitForDataLow: std_logic_vector(3 downto 0) := x"4";
+    constant WaitForDataHigh: std_logic_vector(3 downto 0) := x"5";
+    constant SentDataBit: std_logic_vector(3 downto 0) := x"6";
+    constant WaitForBitPulse: std_logic_vector(3 downto 0) := x"7";
 begin
     process(clk)
     begin
@@ -87,7 +94,7 @@ begin
                         busy <= '1';
                     end if;
                 when others =>
-                    currentState <= Initial;
+                    null;
             end case;
         end if;
     end process;
